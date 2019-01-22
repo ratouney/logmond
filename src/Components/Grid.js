@@ -3,10 +3,10 @@ import { Layer, Line } from 'react-konva';
 
 class Grid extends Component {
     render() {
-      const { color = "blue", size = 1, interval = 50, x, y } = this.props;
+      const { color = "blue", size = 1, interval = 50, x, y, layerArgs = {} } = this.props;
   
       return (
-        <Layer>
+        <Layer {...layerArgs} >
           {
             Array(Math.round(x / interval) + 1).fill(null).map((elem, i) => (
               <Line

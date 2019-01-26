@@ -38,6 +38,8 @@ class Board extends Component {
   }
 
   render() {
+    const { forms } = this.props;
+
     return (
       <div
         className="mainStage"

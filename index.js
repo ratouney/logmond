@@ -15,10 +15,18 @@ var refreshRate = document.currentScript.getAttribute('refreshRate') || 60;
 var shapes = [];
 var selected = null;
 var dragging = false;
+var resizing = false;
 var needUpdate = false;
+
+var mouseDownOffset = {
+    x: 0,
+    y: 0,
+}
 
 function refreshCanvas() {
     var ctx = canvas.getContext('2d');
+    ctx.fillStyle = "rgb(255, 255, 255)";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     shapes.forEach((elem) => {
         drawCircle(ctx, elem);
@@ -28,6 +36,7 @@ function refreshCanvas() {
 function drawCircle(context, circle) {
     context.fillStyle = circle.config.color || "#FFFFFF";
     context.strokeStyle = circle.config.borderColor || "#FFFFFF";
+    context.lineWidth = 7;
     context.beginPath();
     context.arc(circle.config.center.x, circle.config.center.y, circle.config.radius, 0, 2 * Math.PI);
     context.stroke();
@@ -44,8 +53,17 @@ canvas.addEventListener('mousedown', function(e) {
 
         const distance = Math.sqrt(Math.pow(e.offsetX - x, 2) + Math.pow(e.offsetY - y, 2))
 
-        if (distance <= radius)
+        if (Math.abs(distance - radius) < 3) {
+            console.log("You are on the edge ! Modify size !")
+            resizing = true;
             return true;
+        }
+        if (distance <= radius) {
+            mouseDownOffset.x = e.offsetX - x
+            mouseDownOffset.y = e.offsetY - y
+            dragging = true;
+            return true;
+        }
     })
 
     /*
@@ -55,21 +73,39 @@ canvas.addEventListener('mousedown', function(e) {
     console.log("In real array : ", shapes[shapes.length - touched - 1])
     */
     if (touched != -1) {
-        dragging = true;
         selected = drawOrder[touched].id;
         needUpdate = true;
+        if (resizing) {
+            shapes[shapes.length - touched - 1].config.borderColor = "#FF0000"
+        }
     }
 })
 
 canvas.addEventListener('mouseup', function(e) {
     console.log("Nuh !");
-    dragging = false;
+    if (dragging) {
+        dragging = false;
+    }
+    if (resizing) {
+        const idx = shapes.findIndex(elem => elem.id == selected);
+
+        shapes[idx].config.borderColor = shapes[idx].config.originalBorderColor
+        resizing = false;
+    }
     selected = null;
 })
 
 canvas.addEventListener('mouseout', function(e) {
     console.log("I'm out !");
-    dragging = false;
+    if (dragging) {
+        dragging = false;
+    }
+    if (resizing) {
+        const idx = shapes.findIndex(elem => elem.id == selected);
+
+        shapes[idx].config.borderColor = shapes[idx].config.originalBorderColor
+        resizing = false;
+    }
     selected = null;
 })
 
@@ -78,7 +114,29 @@ canvas.addEventListener('mouseenter', function(e) {
 })
 
 document.addEventListener('mousemove', function(e) {
-    // console.log(`Mouse : ${e.x}:${e.y}`);
+    const mouseX = e.offsetX
+    const mouseY = e.offsetY
+
+    if (selected != null && dragging) {
+        console.log("Move circle : ", selected)
+
+        const idx = shapes.findIndex(elem => elem.id == selected);
+
+        shapes[idx].config.center.x = mouseX - mouseDownOffset.x
+        shapes[idx].config.center.y = mouseY - mouseDownOffset.y
+        needUpdate = true;
+    }
+
+    if (selected != null && resizing) {
+        const idx = shapes.findIndex(elem => elem.id == selected);
+
+        const { config: { center: {x, y} } } = shapes[idx];
+        
+        const newRadius = Math.sqrt(Math.pow(mouseX - x, 2) + Math.pow(mouseY - y, 2))
+        
+        shapes[idx].config.radius = newRadius
+        needUpdate = true;
+    }
 })
 
 shapes.push({
@@ -86,6 +144,7 @@ shapes.push({
     config: {
         color: "#42FEAB",
         borderColor: "#B2D4EF",
+        originalBorderColor: "#B2D4EF",
         center: {
             x: 200,
             y: 300,
@@ -98,6 +157,7 @@ shapes.push({
     config: {
         color: "#5ACC3B",
         borderColor: "#EB11C5",
+        originalBorderColor: "#EB11C5",
         center: {
             x: 600,
             y: 200,
@@ -109,7 +169,8 @@ shapes.push({
     id: "thirdCircle",
     config: {
         color: "#AB32FE",
-        borderColor: "445FBC",
+        borderColor: "#445FBC",
+        originalBorderColor: "#44FBC",
         center: {
             x: 700,
             y: 200,

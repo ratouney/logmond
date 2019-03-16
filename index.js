@@ -17,6 +17,7 @@ var selected = null;
 var dragging = false;
 var resizing = false;
 var needUpdate = false;
+var inCanvas = true;
 
 var mouseDownOffset = {
     x: 0,
@@ -96,28 +97,20 @@ canvas.addEventListener('mouseup', function(e) {
 })
 
 canvas.addEventListener('mouseout', function(e) {
+    inCanvas = false;
     console.log("I'm out !");
-    if (dragging) {
-        dragging = false;
-    }
-    if (resizing) {
-        const idx = shapes.findIndex(elem => elem.id == selected);
-
-        shapes[idx].config.borderColor = shapes[idx].config.originalBorderColor
-        resizing = false;
-    }
-    selected = null;
 })
 
 canvas.addEventListener('mouseenter', function(e) {
     console.log("I'm back !");
+    inCanvas = true;
 })
 
 document.addEventListener('mousemove', function(e) {
     const mouseX = e.offsetX
     const mouseY = e.offsetY
 
-    if (selected != null && dragging) {
+    if (selected != null && dragging && inCanvas) {
         console.log("Move circle : ", selected)
 
         const idx = shapes.findIndex(elem => elem.id == selected);
@@ -127,13 +120,13 @@ document.addEventListener('mousemove', function(e) {
         needUpdate = true;
     }
 
-    if (selected != null && resizing) {
+    if (selected != null && resizing && inCanvas) {
         const idx = shapes.findIndex(elem => elem.id == selected);
 
         const { config: { center: {x, y} } } = shapes[idx];
         
         const newRadius = Math.sqrt(Math.pow(mouseX - x, 2) + Math.pow(mouseY - y, 2))
-        
+
         shapes[idx].config.radius = newRadius
         needUpdate = true;
     }

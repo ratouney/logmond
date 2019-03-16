@@ -115,6 +115,48 @@ function getIntersection(equ, line) {
     }
 }
 
+function getCircleIntersections(c1, c2) {
+    const b = c1.radius
+    const c = c2.radius
+    const oc1 = c1.center
+    const oc2 = c2.center
+
+    var a = (-1 * Math.pow(oc1.x, 2)) - Math.pow(oc1.y, 2) + Math.pow(oc2.x, 2) + Math.pow(oc2.y, 2) + Math.pow(b, 2) - Math.pow(c, 2)
+    a /= 2 * (Math.pow(oc2.y, 2) - Math.pow(oc1.y, 2))
+
+    var d = (oc2.x - oc1.x) / (oc2.y - oc1.y)
+
+    console.log("a : ", a)
+    console.log("d : ", d)
+
+    var A = Math.pow(d, 2) + 1
+    var B = (-2 * oc1.x) + (2 * oc1.y * d) - (2 * a * d)
+    var C = Math.pow(oc1.x, 2) + Math.pow(oc1.y, 2) - (2 * Math.pow(oc1.y, 2) * a) + Math.pow(a, 2) - Math.pow(b, 2)
+
+    console.log("A : ", A)
+    console.log("B : ", B)
+    console.log("C : ", C)
+
+    var delta = Math.pow(B, 2) - (4 * A * C)
+
+    console.log("Delta : ", delta)
+
+    const res1 = {
+        x: (-B + Math.sqrt(delta)) / 2 * A,
+        y: ((-B + Math.sqrt(delta)) / 2 * A) * a * d,
+    }
+
+    const res2 = {
+        x: (-B - Math.sqrt(delta)) / 2 * A,
+        y: ((-B - Math.sqrt(delta)) / 2 * A) * a * d,
+    }
+
+    return [
+        res1,
+        res2
+    ]
+}
+
 function drawLink(ctx, firstId, secondId) {
     console.log(`Draw links between ${firstId} and ${secondId}`)
 
@@ -192,6 +234,18 @@ function drawLink(ctx, firstId, secondId) {
     circle.arc(oamiddle.x, oamiddle.y, getDistance(o, a) / 2, 0, 2 * Math.PI);
     circle.stroke();
     circle.closePath();
+
+    drawDot(oamiddle, 3)
+
+    // http://nains-games.com/2014/12/intersection-de-deux-cercles.html
+
+    /*
+    const intersec = getCircleIntersections(
+        {center: {x: elem1.config.center.x, y: elem1.config.center.y}, radius: elem1.config.radius}, 
+        {center: {x: oamiddle.x, y: oamiddle.y}, radius: getDistance(o, a) / 2})
+    */
+
+    //console.log("Intersections : ", intersec)
 }
 
 function drawDot(dot, rad) {
